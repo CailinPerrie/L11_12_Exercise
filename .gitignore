@@ -2,3 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
+
+## Ignoring a file 
+# We do this by opening the .gitignore file in our text editor
+# and adding the name of the file in a line below the comments:
+
+./Data/.csv
+
