@@ -210,18 +210,37 @@ diamonds %>%
 
 # these are especially useful when grouping/faceting on continuous variables
 
-
-### Not Sure what this means???
-
 # EXERCISE: Display the distribution of price conditional on cut and carat. 
 # Try facetting by cut and grouping by carat. Try facetting by carat and grouping by cut. 
 # Which do you prefer?
+
+## need to convert continues 'carat' variable into a categorical one
+
+diamonds %>% 
+  ggplot(aes(x = price, color = cut_number(carat, n = 5))) + 
+  geom_freqpoly() + 
+  facet_grid(.~cut)
+
+## facet by row
+diamonds %>% 
+  ggplot(aes(x = price, color = cut_number(carat, n = 5))) + 
+  geom_freqpoly() + 
+  facet_grid(cut ~. , scales = "free_y")
+
+
 
 # EXERCISE: Compare the relationship between price and carat for each colour.
 # What makes it hard to compare the groups? Is grouping better or facetting? 
 # If you use facetting, what annotation might you add to make it easier to see 
 # the differences between panels?
 
+## problem here? Can't compare these distributions on their y axis very easily.
+subset2 <- diamonds %>% group_by(cut)
+subset2 %>%
+  ggplot( aes(x = price, color = cut_number(carat, n = 5))) +
+  geom_freqpoly() + 
+  facet_grid(cut ~., scales = "free_y" )
+  
 #-------------------------------------------------------------------------------------
 
 ### Labels (labs)
@@ -380,7 +399,7 @@ diamonds %>%
   labs(x = "price (cut in 5 groups with equal range)", y = "frequency",
        main = "Histogram showing the frequency of obtaining a certain price for a diamond") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=0.1)) +   #rotating x axis labels by 90 degrees
-  scale_x_discrete(labels = label_comma(x = cut_interval(price, n=5)))       # trying to get rid of scientific notation
+  scale_x_discrete((labels = function(x) format(x, scientific = TRUE)))   # trying to get rid of scientific notation
 
 ## not sure how to get rid of scientific notation for discrete breaks
 #-------------------------------------------------------------------------------------
@@ -391,15 +410,15 @@ diamonds %>%
 # (make the label's location dynamic, rather than at a fixed (x,y) location)
 
 subset1 <- diamonds %>% sample_n(10)
-subset1 <- arrange(subset1, desc(carat), desc(price))
-position_x <- subset1$carat[1]
-position_y <- subset1$price[1]
+subset1 <- mutate(subset1, value_per_carat = price/carat)
+subset1 <- subset1 %>% 
+  arrange(desc(value_per_carat))
+subset1b <- subset1[1, ] %>% mutate(lab = "largest vpc")
 
 subset1 %>%
-  ggplot(aes(x = carat, y = price, label = c(position_x))) + 
+  ggplot(aes(x = carat, y = price)) + 
   geom_point() +
-  geom_label()
-
+  geom_label_repel(data = subset1b, aes(label = lab))  # geom_label_repel() to ensure label doesnt cover point on graph
 
 #-------------------------------------------------------------------------------------
 
